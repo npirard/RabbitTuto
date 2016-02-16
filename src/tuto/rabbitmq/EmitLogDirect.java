@@ -8,9 +8,9 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.MessageProperties;
 
-public class EmitLog {
+public class EmitLogDirect {
 
-    private final static String EXCHANGE_NAME = "logs";
+    private final static String EXCHANGE_NAME = "direct_logs";
 
     public static void main(String[] argv) throws IOException, TimeoutException{
         String message = getMessage(argv);
@@ -20,20 +20,27 @@ public class EmitLog {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+        channel.exchangeDeclare(EXCHANGE_NAME, "direct");
 
-        boolean durable = true;
-        channel.basicPublish(EXCHANGE_NAME, "", MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
-        System.out.println(" [x] Sent '" + message + "'");
+        String severity = getSeverity(argv);
+
+
+        channel.basicPublish(EXCHANGE_NAME, severity , MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
+        System.out.println(" [x] Sent '" + severity + "':'" + message + "'");
 
         channel.close();
         connection.close();
     }
 
-    private static String getMessage(String[] strings) {
-        if (strings.length < 1)
-            return "Hello World!";
-        return joinStrings(strings, " ");
+    private static String getSeverity(String[] argv) {
+        return argv[0];
+    }
+
+    private static String getMessage(String[] argv) {
+        return argv[1];
+//        if (strings.length < 1)
+//            return "Hello World!";
+//        return joinStrings(strings, " ");
     }
 
     private static String joinStrings(String[] strings, String delimiter) {
